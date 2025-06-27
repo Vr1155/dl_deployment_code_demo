@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: cnn-model-api
+    container_name: cat-dog-classifier-api
     ports:
       - "5000:5000"
     environment:
@@ -13,6 +13,7 @@ services:
       - LOG_LEVEL=INFO
       - MODEL_PATH=models/cats_vs_dogs_classifier
       - CLASSES_FILE=models/classes.txt
+      - PYTHONPATH=/app
     volumes:
       # Mount models directory to easily update models without rebuilding
       - ./models:/app/models:ro
@@ -20,13 +21,26 @@ services:
       - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import requests; requests.get('http://localhost:5000/health', timeout=10)"
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     networks:
       - cnn-network
+    # Resource limits to prevent container from consuming too much memory
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
 
 networks:
   cnn-network:

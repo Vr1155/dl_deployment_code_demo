@@ -5,7 +5,7 @@ Werkzeug==2.3.7
 
 # TensorFlow for model inference
 tensorflow==2.13.0
-tf-keras==2.13.0
+tf-keras==2.14.1
 
 # Hugging Face Hub for model download
 huggingface_hub==0.17.3

@@ -17,8 +17,17 @@ st.markdown("Upload an image of a cat or dog and get AI-powered classification r
 # Sidebar for API configuration
 st.sidebar.header("Configuration")
 api_host = st.sidebar.text_input("API Host", value="localhost")
-api_port = st.sidebar.number_input("API Port", value=5001, min_value=1, max_value=65535)
+api_port = st.sidebar.number_input("API Port", value=5002, min_value=1, max_value=65535)
 api_url = f"http://{api_host}:{api_port}"
+
+# Add API type indicator
+container_status = st.sidebar.empty()
+if api_port == 5002:
+    container_status.info("🐳 Using Docker API")
+elif api_port == 5001:
+    container_status.info("🐍 Using Local Flask API")
+else:
+    container_status.info("🔧 Using Custom API")
 
 # Test API connection
 st.sidebar.subheader("API Status")
@@ -172,6 +181,8 @@ with col2:
     - Classes: Cat, Dog
     - Input size: 150x150 pixels
     - Binary classification output
+    - **Deployment**: Running in Docker container (Ubuntu 22.04)
+    - **Source**: Hugging Face (carlosaguayo/cats_vs_dogs)
     """)
 
 with col3:

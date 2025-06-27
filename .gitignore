@@ -147,5 +147,7 @@ models/*.pkl
 !models/.gitkeep
 !models/classes.txt
 
+tests/data/password.txt
+
 # Docker
 .docker/

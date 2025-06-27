@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  flask-cnn-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cnn-model-api
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - LOG_LEVEL=INFO
+      - MODEL_PATH=models/cnn_model.pb
+      - CLASSES_FILE=models/classes.txt
+    volumes:
+      # Mount models directory to easily update models without rebuilding
+      - ./models:/app/models:ro
+      # Mount logs directory for persistent logging
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - cnn-network
+
+networks:
+  cnn-network:
+    driver: bridge
+
+# Optional: Add volume for persistent model storage
+volumes:
+  model-data:
+    driver: local

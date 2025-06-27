@@ -1,0 +1,27 @@
+# Flask and web framework dependencies
+Flask==2.3.3
+Flask-CORS==4.0.0
+Werkzeug==2.3.7
+
+# TensorFlow for model inference
+tensorflow==2.13.0
+
+# Image processing
+Pillow==10.0.1
+opencv-python-headless==4.8.1.78
+
+# Scientific computing
+numpy==1.24.3
+
+# HTTP requests (for health checks)
+requests==2.31.0
+
+# Logging and utilities
+python-json-logger==2.0.7
+
+# Development and testing (optional)
+pytest==7.4.2
+pytest-flask==1.2.0
+
+# Production server (optional - for production deployment)
+gunicorn==21.2.0

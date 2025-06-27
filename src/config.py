@@ -9,9 +9,10 @@ class Config:
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
     # Model settings
-    MODEL_PATH = os.environ.get('MODEL_PATH') or 'models/cnn_model.pb'
-    MODEL_INPUT_SIZE = (224, 224)  # Default input size for CNN models
+    MODEL_PATH = os.environ.get('MODEL_PATH') or 'models/vgg16-fruit-classifier'
+    MODEL_INPUT_SIZE = (100, 100)  # VGG16 Fruits model input size
     MODEL_CLASSES_FILE = os.environ.get('CLASSES_FILE') or 'models/classes.txt'
+    HUGGINGFACE_MODEL_ID = 'Adriana213/vgg16-fruit-classifier'
 
     # Image processing settings
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size

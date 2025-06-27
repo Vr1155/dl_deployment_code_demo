@@ -1,50 +1,57 @@
-# CNN Image Classifier Flask API
+# VGG16 Fruits Classifier Flask API
 
-A production-ready Flask API for deploying CNN image classification models using TensorFlow. This application is designed to run in Docker containers and provides RESTful endpoints for image classification.
+A production-ready Flask API for deploying the VGG16 Fruits Classifier model using TensorFlow/Keras. This application classifies images of fruits into 131 different categories from the Fruits-360 dataset. The app is designed to run in Docker containers and provides RESTful endpoints for fruit image classification.
 
 ## Features
 
-- **TensorFlow Model Support**: Deploy `.pb` (frozen graph) models
+- **VGG16 Fruits Model**: Pre-trained model for 131 fruit categories (96.02% accuracy)
+- **Hugging Face Integration**: Automatic model download from Hugging Face Hub
 - **Docker Ready**: Containerized application for easy deployment
-- **REST API**: Simple HTTP endpoints for predictions
-- **Image Processing**: Automatic image preprocessing and validation
+- **REST API**: Simple HTTP endpoints for fruit predictions
+- **Image Processing**: VGG16-optimized preprocessing and validation
 - **Health Monitoring**: Health check endpoints for monitoring
 - **Logging**: Comprehensive logging system
-- **CORS Support**: Ready for frontend integration
+- **CORS Support**: Ready for Streamlit frontend integration
 - **Production Ready**: Optimized for production deployment
 
 ## Project Structure
 
 ```
-├── app.py                 # Main Flask application
-├── src/
-│   ├── __init__.py
-│   ├── config.py         # Application configuration
-│   ├── model_handler.py  # Model loading and inference
-│   └── utils.py          # Utility functions
-├── models/
-│   ├── .gitkeep
-│   ├── classes.txt       # Class labels file
-│   └── cnn_model.pb      # Your TensorFlow model (add this)
-├── tests/
-│   ├── __init__.py
-│   └── test_app.py       # Unit tests
-├── logs/
-│   └── .gitkeep
-├── Dockerfile            # Docker configuration
-├── docker-compose.yml    # Docker Compose setup
-├── requirements.txt      # Python dependencies
-├── .dockerignore        # Docker ignore file
-└── README.md            # This file
+app.py                 # Main Flask application
+src/
+    __init__.py
+    config.py         # Application configuration
+    model_handler.py  # Model loading and inference
+    utils.py          # Utility functions
+models/
+    .gitkeep
+    classes.txt       # 131 fruit class labels
+    vgg16-fruit-classifier/  # Downloaded Keras model
+tests/
+    __init__.py
+    test_app.py       # Unit tests
+logs/
+    .gitkeep
+Dockerfile            # Docker configuration
+docker-compose.yml    # Docker Compose setup
+requirements.txt      # Python dependencies
+.dockerignore        # Docker ignore file
+README.md            # This file
 ```
 
 ## Quick Start
 
-### 1. Setup Your Model
+### 1. Download the VGG16 Fruits Model
 
-1. Place your TensorFlow `.pb` model file in the `models/` directory
-2. Update the `models/classes.txt` file with your class labels (one per line)
-3. Update the configuration in `src/config.py` if needed
+The model will be automatically downloaded from Hugging Face on first run, or you can pre-download it:
+
+```bash
+# Install dependencies
+pip install tensorflow tf-keras huggingface_hub pillow flask flask-cors
+
+# Download model and generate fruit class labels
+python download_model.py
+```
 
 ### 2. Using Docker (Recommended)
 
@@ -67,8 +74,14 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Download the model (if not already done)
+python download_model.py
+
 # Run the application
 python app.py
+
+# On macOS, if port 5000 is occupied by AirPlay:
+PORT=5001 python app.py
 ```
 
 ## API Endpoints
@@ -99,12 +112,14 @@ GET /model/info
 ```json
 {
     "model_loaded": true,
-    "model_path": "models/cnn_model.pb",
-    "input_size": [224, 224],
-    "num_classes": 10,
-    "classes": ["cat", "dog", "bird", ...],
-    "input_tensor": "input:0",
-    "output_tensor": "output:0"
+    "model_name": "VGG16 Fruits Classifier",
+    "huggingface_id": "Adriana213/vgg16-fruit-classifier",
+    "input_size": [100, 100],
+    "num_classes": 131,
+    "total_classes": 131,
+    "classes": ["Apple Braeburn", "Apple Crimson Snow", "Apple Golden 1", ...],
+    "input_shape": "(None, 100, 100, 3)",
+    "output_shape": "(None, 131)"
 }
 ```
 
@@ -124,33 +139,50 @@ Content-Type: multipart/form-data
 ```json
 {
   "success": true,
+  "model": "VGG16 Fruits Classifier",
   "predictions": [
     {
-      "class": "cat",
-      "confidence": 0.95,
-      "probability": "95.00%"
+      "class": "Apple Red",
+      "confidence": 0.92,
+      "probability": "92.00%"
     },
     {
-      "class": "dog",
-      "confidence": 0.03,
-      "probability": "3.00%"
+      "class": "Apple Braeburn",
+      "confidence": 0.05,
+      "probability": "5.00%"
     }
   ],
   "top_prediction": {
-    "class": "cat",
-    "confidence": 0.95,
-    "probability": "95.00%"
+    "class": "Apple Red",
+    "confidence": 0.92,
+    "probability": "92.00%"
   }
 }
 ```
+
+## Testing the API
+
+A test script is provided to demonstrate all endpoints:
+
+```bash
+# Test all API endpoints with a synthetic fruit image
+python test_prediction.py
+```
+
+This will test:
+
+- Health check endpoint
+- Model info endpoint
+- Prediction endpoint with a sample image
 
 ## Configuration
 
 Key configuration options in `src/config.py`:
 
-- `MODEL_PATH`: Path to your .pb model file
-- `MODEL_INPUT_SIZE`: Input image size (width, height)
+- `MODEL_PATH`: Path to the Keras model directory
+- `MODEL_INPUT_SIZE`: Input image size (100, 100 for VGG16)
 - `MODEL_CLASSES_FILE`: Path to classes.txt file
+- `HUGGINGFACE_MODEL_ID`: Hugging Face model identifier
 - `MAX_CONTENT_LENGTH`: Maximum upload file size
 - `ALLOWED_EXTENSIONS`: Allowed image file extensions
 

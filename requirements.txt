@@ -5,6 +5,10 @@ Werkzeug==2.3.7
 
 # TensorFlow for model inference
 tensorflow==2.13.0
+tf-keras==2.13.0
+
+# Hugging Face Hub for model download
+huggingface_hub==0.17.3
 
 # Image processing
 Pillow==10.0.1

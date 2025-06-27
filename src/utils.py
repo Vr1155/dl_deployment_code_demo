@@ -20,9 +20,41 @@ def setup_logging():
         ]
     )
 
+def preprocess_image_vgg16(image_file, target_size: Tuple[int, int]) -> np.ndarray:
+    """
+    Preprocess uploaded image for VGG16 model inference
+
+    Args:
+        image_file: Uploaded image file
+        target_size: Target size (width, height) for resizing
+
+    Returns:
+        Preprocessed image as numpy array suitable for VGG16
+    """
+    from tensorflow.keras.applications.vgg16 import preprocess_input
+
+    # Read image
+    image_bytes = image_file.read()
+    image = Image.open(io.BytesIO(image_bytes))
+
+    # Convert to RGB if needed
+    if image.mode != 'RGB':
+        image = image.convert('RGB')
+
+    # Resize image to target size
+    image = image.resize(target_size, Image.Resampling.LANCZOS)
+
+    # Convert to numpy array
+    image_array = np.array(image, dtype=np.float32)
+
+    # Apply VGG16 preprocessing (this handles normalization)
+    image_array = preprocess_input(image_array)
+
+    return image_array
+
 def preprocess_image(image_file, target_size: Tuple[int, int]) -> np.ndarray:
     """
-    Preprocess uploaded image for model inference
+    Generic preprocess uploaded image for model inference (keeping for backward compatibility)
 
     Args:
         image_file: Uploaded image file

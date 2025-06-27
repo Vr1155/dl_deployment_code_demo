@@ -11,7 +11,7 @@ services:
     environment:
       - FLASK_ENV=production
       - LOG_LEVEL=INFO
-      - MODEL_PATH=models/vgg16-fruit-classifier
+      - MODEL_PATH=models/cats_vs_dogs_classifier
       - CLASSES_FILE=models/classes.txt
     volumes:
       # Mount models directory to easily update models without rebuilding

@@ -1,110 +1,126 @@
 #!/usr/bin/env python3
 """
-Simple test script to demonstrate the VGG16 Fruits Classifier API
+Test script for the VGG16 Cat vs Dog Classifier API
+Creates synthetic test images and sends them to the API for prediction
 """
 
 import requests
-import json
-from PIL import Image
 import io
+from PIL import Image, ImageDraw
+import numpy as np
 
-def create_test_fruit_image():
-    """Create a simple test image (red apple-like)"""
-    # Create a 100x100 red image (apple-like)
-    img = Image.new('RGB', (100, 100), color='red')
+def create_test_image(color, size=(150, 150), pattern="solid"):
+    """Create a synthetic test image"""
+    image = Image.new("RGB", size, color)
 
-    # Add some variation to make it more apple-like
-    for x in range(100):
-        for y in range(100):
-            # Create a gradient effect
-            r = min(255, 200 + (x + y) // 8)
-            g = max(0, 50 - (x + y) // 20)
-            b = max(0, 50 - (x + y) // 20)
-            img.putpixel((x, y), (r, g, b))
+    if pattern == "stripes":
+        draw = ImageDraw.Draw(image)
+        for i in range(0, size[1], 20):
+            draw.rectangle([0, i, size[0], i+10], fill=(255, 255, 255))
+    elif pattern == "spots":
+        draw = ImageDraw.Draw(image)
+        for i in range(0, size[0], 30):
+            for j in range(0, size[1], 30):
+                draw.ellipse([i, j, i+15, j+15], fill=(255, 255, 255))
 
-    return img
+    return image
 
-def test_health_endpoint():
-    """Test the health endpoint"""
-    print("Testing health endpoint...")
-    try:
-        response = requests.get("http://localhost:5001/health")
-        if response.status_code == 200:
-            print("Health check passed")
-            print(f"Response: {response.json()}")
-        else:
-            print(f"Health check failed: {response.status_code}")
-    except Exception as e:
-        print(f"Error testing health endpoint: {e}")
+def image_to_bytes(image):
+    """Convert PIL Image to bytes"""
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format='PNG')
+    img_byte_arr.seek(0)
+    return img_byte_arr
 
-def test_model_info():
-    """Test the model info endpoint"""
-    print("\nTesting model info endpoint...")
-    try:
-        response = requests.get("http://localhost:5001/model/info")
-        if response.status_code == 200:
-            info = response.json()
-            print("Model info retrieved successfully")
-            print(f"Model: {info['model_name']}")
-            print(f"Classes: {info['total_classes']}")
-            print(f"Input size: {info['input_size']}")
-            print(f"Sample classes: {', '.join(info['classes'][:5])}...")
-        else:
-            print(f"Model info failed: {response.status_code}")
-    except Exception as e:
-        print(f"Error testing model info: {e}")
+def test_api(api_url="http://localhost:5001"):
+    """Test the Flask API with synthetic images"""
 
-def test_prediction():
-    """Test the prediction endpoint with a sample image"""
-    print("\nTesting prediction endpoint...")
-    try:
-        # Create a test image
-        test_img = create_test_fruit_image()
-
-        # Convert to bytes
-        img_buffer = io.BytesIO()
-        test_img.save(img_buffer, format='PNG')
-        img_buffer.seek(0)
-
-        # Send prediction request
-        files = {'image': ('test_apple.png', img_buffer, 'image/png')}
-        response = requests.post("http://localhost:5001/predict", files=files)
-
-        if response.status_code == 200:
-            result = response.json()
-            print("Prediction successful")
-
-            if result.get('success'):
-                top_pred = result['top_prediction']
-                print(f"Top prediction: {top_pred['class']}")
-                print(f"Confidence: {top_pred['probability']}")
-
-                print("\nTop 3 predictions:")
-                for i, pred in enumerate(result['predictions'][:3], 1):
-                    print(f"  {i}. {pred['class']}: {pred['probability']}")
-            else:
-                print(f"Prediction failed: {result.get('error', 'Unknown error')}")
-        else:
-            print(f"Prediction request failed: {response.status_code}")
-
-    except Exception as e:
-        print(f"Error testing prediction: {e}")
-
-def main():
-    """Main test function"""
-    print("VGG16 Fruits Classifier API Test")
+    print("Testing VGG16 Cat vs Dog Classifier API")
     print("=" * 50)
 
-    # Test all endpoints
-    test_health_endpoint()
-    test_model_info()
-    test_prediction()
+    # Test health endpoint
+    print("\n1. Testing health endpoint...")
+    try:
+        response = requests.get(f"{api_url}/health")
+        if response.status_code == 200:
+            health_data = response.json()
+            print(f"   Status: {health_data['status']}")
+            print(f"   Model loaded: {health_data['model_loaded']}")
+        else:
+            print(f"   Health check failed: {response.status_code}")
+            return
+    except Exception as e:
+        print(f"   Health check error: {e}")
+        return
 
-    print("\nAPI testing completed!")
-    print("\nTips:")
-    print("- Try uploading real fruit images for better predictions")
-    print("- The model works best with 100x100 fruit images")
-    print("- Supported formats: PNG, JPG, JPEG, GIF, BMP")
+    # Test model info endpoint
+    print("\n2. Testing model info endpoint...")
+    try:
+        response = requests.get(f"{api_url}/model/info")
+        if response.status_code == 200:
+            model_info = response.json()
+            print(f"   Model: {model_info.get('model_name', 'Unknown')}")
+            print(f"   Classes: {model_info.get('classes', [])}")
+            print(f"   Input size: {model_info.get('input_size', 'Unknown')}")
+            print(f"   Total classes: {model_info.get('total_classes', 'Unknown')}")
+        else:
+            print(f"   Model info failed: {response.status_code}")
+    except Exception as e:
+        print(f"   Model info error: {e}")
+
+    # Test prediction with different colored images
+    test_cases = [
+        {"color": (139, 69, 19), "name": "Brown Image (might look like dog fur)", "expected": "Dog"},
+        {"color": (169, 169, 169), "name": "Gray Image (might look like cat fur)", "expected": "Cat"},
+        {"color": (255, 140, 0), "name": "Orange Image (orange cats)", "expected": "Cat"},
+        {"color": (255, 255, 255), "name": "White Image (neutral)", "expected": "Either"}
+    ]
+
+    print("\n3. Testing predictions with synthetic images...")
+
+    for i, test_case in enumerate(test_cases, 1):
+        print(f"\n   Test {i}: {test_case['name']}")
+
+        # Create test image
+        test_image = create_test_image(test_case['color'])
+        image_bytes = image_to_bytes(test_image)
+
+        try:
+            # Send prediction request
+            files = {"image": ("test_image.png", image_bytes, "image/png")}
+            response = requests.post(f"{api_url}/predict", files=files)
+
+            if response.status_code == 200:
+                result = response.json()
+
+                if result.get("success"):
+                    top_pred = result["top_prediction"]
+                    print(f"      Prediction: {top_pred['class']}")
+                    print(f"      Confidence: {top_pred['probability']}")
+
+                    # Show all predictions
+                    print("      All predictions:")
+                    for pred in result["predictions"]:
+                        print(f"        {pred['class']}: {pred['probability']}")
+
+                    # Show raw prediction value
+                    if "raw_prediction" in result:
+                        raw_val = result["raw_prediction"]
+                        print(f"      Raw prediction value: {raw_val:.4f}")
+                        print(f"      (Raw >= 0.5 = Cat, Raw < 0.5 = Dog)")
+                else:
+                    print(f"      Prediction failed: {result.get('error', 'Unknown error')}")
+            else:
+                print(f"      API request failed: {response.status_code}")
+
+        except Exception as e:
+            print(f"      Prediction error: {e}")
+
+    print("\n" + "=" * 50)
+    print("Test completed! The API is working with synthetic images.")
+    print("\nNote: These are synthetic colored images, not actual photos of cats/dogs.")
+    print("For real testing, try uploading actual cat and dog photos through the web interface:")
+    print("http://localhost:8501 (if using Streamlit UI)")
 
 if __name__ == "__main__":
-    main()
+    test_api()

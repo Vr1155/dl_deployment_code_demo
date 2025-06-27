@@ -9,10 +9,10 @@ class Config:
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
     # Model settings
-    MODEL_PATH = os.environ.get('MODEL_PATH') or 'models/vgg16-fruit-classifier'
-    MODEL_INPUT_SIZE = (100, 100)  # VGG16 Fruits model input size
+    MODEL_PATH = os.environ.get('MODEL_PATH') or 'models/cats_vs_dogs_classifier'
+    MODEL_INPUT_SIZE = (150, 150)  # VGG16 Cat vs Dog model input size
     MODEL_CLASSES_FILE = os.environ.get('CLASSES_FILE') or 'models/classes.txt'
-    HUGGINGFACE_MODEL_ID = 'Adriana213/vgg16-fruit-classifier'
+    HUGGINGFACE_MODEL_ID = 'carlosaguayo/cats_vs_dogs'
 
     # Image processing settings
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size

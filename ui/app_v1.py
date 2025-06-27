@@ -16,14 +16,16 @@ st.markdown("Upload an image of a cat or dog and get AI-powered classification r
 
 # Sidebar for API configuration
 st.sidebar.header("Configuration")
-api_host = st.sidebar.text_input("API Host", value="localhost")
-api_port = st.sidebar.number_input("API Port", value=5002, min_value=1, max_value=65535)
+api_host = st.sidebar.text_input("API Host", value="167.172.27.72")
+api_port = st.sidebar.number_input("API Port", value=5001, min_value=1, max_value=65535)
 api_url = f"http://{api_host}:{api_port}"
 
 # Add API type indicator
 container_status = st.sidebar.empty()
-if api_port == 5002:
-    container_status.info("🐳 Using Docker API")
+if api_host == "167.172.27.72" and api_port == 5001:
+    container_status.info("☁️ Using Digital Ocean Docker API")
+elif api_port == 5002:
+    container_status.info("🐳 Using Local Docker API")
 elif api_port == 5001:
     container_status.info("🐍 Using Local Flask API")
 else:

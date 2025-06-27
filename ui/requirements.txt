@@ -1,0 +1,11 @@
+# Streamlit Community Cloud Requirements
+# Only includes dependencies needed for the frontend UI
+
+# Core Streamlit framework
+streamlit>=1.28.0
+
+# HTTP requests for API calls to Digital Ocean droplet
+requests>=2.31.0
+
+# Image processing for uploaded images
+Pillow>=10.0.0

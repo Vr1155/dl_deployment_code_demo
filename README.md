@@ -1,14 +1,14 @@
-# VGG16 Fruits Classifier Flask API
+# VGG16 Cat vs Dog Classifier Flask API
 
-A production-ready Flask API for deploying the VGG16 Fruits Classifier model using TensorFlow/Keras. This application classifies images of fruits into 131 different categories from the Fruits-360 dataset. The app is designed to run in Docker containers and provides RESTful endpoints for fruit image classification.
+A production-ready Flask API for deploying the VGG16 Cat vs Dog Classifier model using TensorFlow/Keras. This application performs binary classification to distinguish between cats and dogs in uploaded images. The app is designed to run in Docker containers and provides RESTful endpoints for pet image classification.
 
 ## Features
 
-- **VGG16 Fruits Model**: Pre-trained model for 131 fruit categories (96.02% accuracy)
+- **VGG16 Cat vs Dog Model**: Pre-trained binary classifier for cat and dog detection
 - **Hugging Face Integration**: Automatic model download from Hugging Face Hub
 - **Docker Ready**: Containerized application for easy deployment
-- **REST API**: Simple HTTP endpoints for fruit predictions
-- **Image Processing**: VGG16-optimized preprocessing and validation
+- **REST API**: Simple HTTP endpoints for pet image predictions
+- **Image Processing**: VGG16-optimized preprocessing and validation (150x150 input)
 - **Health Monitoring**: Health check endpoints for monitoring
 - **Logging**: Comprehensive logging system
 - **CORS Support**: Ready for Streamlit frontend integration
@@ -25,8 +25,8 @@ src/
     utils.py          # Utility functions
 models/
     .gitkeep
-    classes.txt       # 131 fruit class labels
-    vgg16-fruit-classifier/  # Downloaded Keras model
+    classes.txt       # Cat and Dog class labels
+    cats_vs_dogs_classifier/  # Downloaded Keras model
 tests/
     __init__.py
     test_app.py       # Unit tests
@@ -41,7 +41,7 @@ README.md            # This file
 
 ## Quick Start
 
-### 1. Download the VGG16 Fruits Model
+### 1. Download the VGG16 Cat vs Dog Model
 
 The model will be automatically downloaded from Hugging Face on first run, or you can pre-download it:
 
@@ -49,7 +49,7 @@ The model will be automatically downloaded from Hugging Face on first run, or yo
 # Install dependencies
 pip install tensorflow tf-keras huggingface_hub pillow flask flask-cors
 
-# Download model and generate fruit class labels
+# Download model and generate cat/dog class labels
 python download_model.py
 ```
 
@@ -111,15 +111,15 @@ GET /model/info
 
 ```json
 {
-    "model_loaded": true,
-    "model_name": "VGG16 Fruits Classifier",
-    "huggingface_id": "Adriana213/vgg16-fruit-classifier",
-    "input_size": [100, 100],
-    "num_classes": 131,
-    "total_classes": 131,
-    "classes": ["Apple Braeburn", "Apple Crimson Snow", "Apple Golden 1", ...],
-    "input_shape": "(None, 100, 100, 3)",
-    "output_shape": "(None, 131)"
+  "model_loaded": true,
+  "model_name": "VGG16 Cat vs Dog Classifier",
+  "huggingface_id": "carlosaguayo/cats_vs_dogs",
+  "input_size": [150, 150],
+  "num_classes": 2,
+  "total_classes": 2,
+  "classes": ["Dog", "Cat"],
+  "input_shape": "(None, 150, 150, 3)",
+  "output_shape": "(None, 1)"
 }
 ```
 
@@ -139,23 +139,17 @@ Content-Type: multipart/form-data
 ```json
 {
   "success": true,
-  "model": "VGG16 Fruits Classifier",
+  "model": "VGG16 Cat vs Dog Classifier",
   "predictions": [
     {
-      "class": "Apple Red",
-      "confidence": 0.92,
-      "probability": "92.00%"
+      "class": "Dog"
     },
     {
-      "class": "Apple Braeburn",
-      "confidence": 0.05,
-      "probability": "5.00%"
+      "class": "Cat"
     }
   ],
   "top_prediction": {
-    "class": "Apple Red",
-    "confidence": 0.92,
-    "probability": "92.00%"
+    "class": "Cat"
   }
 }
 ```
@@ -165,7 +159,7 @@ Content-Type: multipart/form-data
 A test script is provided to demonstrate all endpoints:
 
 ```bash
-# Test all API endpoints with a synthetic fruit image
+# Test all API endpoints with synthetic cat and dog images
 python test_prediction.py
 ```
 
@@ -173,14 +167,14 @@ This will test:
 
 - Health check endpoint
 - Model info endpoint
-- Prediction endpoint with a sample image
+- Prediction endpoint with sample cat and dog images
 
 ## Configuration
 
 Key configuration options in `src/config.py`:
 
 - `MODEL_PATH`: Path to the Keras model directory
-- `MODEL_INPUT_SIZE`: Input image size (100, 100 for VGG16)
+- `MODEL_INPUT_SIZE`: Input image size (150, 150 for VGG16)
 - `MODEL_CLASSES_FILE`: Path to classes.txt file
 - `HUGGINGFACE_MODEL_ID`: Hugging Face model identifier
 - `MAX_CONTENT_LENGTH`: Maximum upload file size
@@ -277,8 +271,8 @@ Example Streamlit integration:
 import streamlit as st
 import requests
 
-# Upload image in Streamlit
-uploaded_file = st.file_uploader("Choose an image...")
+# Upload cat or dog image in Streamlit
+uploaded_file = st.file_uploader("Choose a cat or dog image...")
 
 if uploaded_file is not None:
     # Send to Flask API
@@ -287,8 +281,10 @@ if uploaded_file is not None:
 
     if response.status_code == 200:
         prediction = response.json()
-        st.write(f"Prediction: {prediction['top_prediction']['class']}")
-        st.write(f"Confidence: {prediction['top_prediction']['probability']}")
+        top_pred = prediction['top_prediction']
+        emoji = "🐱" if top_pred['class'] == 'Cat' else "🐶"
+        st.success(f"{emoji} Prediction: {top_pred['class']}")
+        st.info(f"Model: {prediction['model']}")
 ```
 
 ## Troubleshooting

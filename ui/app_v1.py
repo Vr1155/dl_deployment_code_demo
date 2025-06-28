@@ -46,78 +46,74 @@ try:
 except requests.exceptions.RequestException:
     st.sidebar.error("❌ Cannot Connect to API")
 
-# Main content area
-col1, col2 = st.columns([1, 1])
+# Main content area - Single column for mobile-friendly design
+st.header("Upload Image")
+uploaded_file = st.file_uploader(
+    "Choose a cat or dog image...",
+    type=["jpg", "jpeg", "png", "bmp", "gif"],
+    help="Upload an image of a cat or dog to classify"
+)
 
-with col1:
-    st.header("Upload Image")
-    uploaded_file = st.file_uploader(
-        "Choose a cat or dog image...",
-        type=["jpg", "jpeg", "png", "bmp", "gif"],
-        help="Upload an image of a cat or dog to classify"
-    )
+if uploaded_file is not None:
+    # Display uploaded image
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
 
-    if uploaded_file is not None:
-        # Display uploaded image
-        image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", use_column_width=True)
+    # Show image details
+    st.caption(f"Image size: {image.size}")
+    st.caption(f"Image mode: {image.mode}")
 
-        # Show image details
-        st.caption(f"Image size: {image.size}")
-        st.caption(f"Image mode: {image.mode}")
-
-with col2:
+    # Classification section
     st.header("Classification Results")
 
-    if uploaded_file is not None:
-        # Classify button
-        if st.button("Classify Pet", type="primary"):
-            with st.spinner("Analyzing image..."):
-                try:
-                    # Reset file pointer to beginning
-                    uploaded_file.seek(0)
+    # Classify button
+    if st.button("Classify Pet", type="primary", use_container_width=True):
+        with st.spinner("Analyzing image..."):
+            try:
+                # Reset file pointer to beginning
+                uploaded_file.seek(0)
 
-                    # Send image to Flask backend for prediction
-                    files = {"image": uploaded_file}
-                    response = requests.post(
-                        f"{api_url}/predict",
-                        files=files,
-                        timeout=30
-                    )
+                # Send image to Flask backend for prediction
+                files = {"image": uploaded_file}
+                response = requests.post(
+                    f"{api_url}/predict",
+                    files=files,
+                    timeout=30
+                )
 
-                    if response.status_code == 200:
-                        result = response.json()
+                if response.status_code == 200:
+                    result = response.json()
 
-                        if result.get("success"):
-                            # Show top prediction prominently
-                            top_pred = result["top_prediction"]
+                    if result.get("success"):
+                        # Show top prediction prominently
+                        top_pred = result["top_prediction"]
 
-                            # Add emoji for the prediction
-                            emoji = "🐱" if top_pred['class'] == 'Cat' else "🐶"
-                            st.success(f"**{emoji} Prediction: {top_pred['class']}**")
+                        # Add emoji for the prediction
+                        emoji = "🐱" if top_pred['class'] == 'Cat' else "🐶"
+                        st.success(f"**{emoji} Prediction: {top_pred['class']}**")
 
-                            # Model info
-                            if "model" in result:
-                                st.info(f"Model: {result['model']}")
-
-                        else:
-                            st.error(f"Prediction failed: {result.get('error', 'Unknown error')}")
-
-                    elif response.status_code == 400:
-                        error_data = response.json()
-                        st.error(f"Bad request: {error_data.get('error', 'Invalid input')}")
+                        # Model info
+                        if "model" in result:
+                            st.info(f"Model: {result['model']}")
 
                     else:
-                        st.error(f"Server error: {response.status_code}")
+                        st.error(f"Prediction failed: {result.get('error', 'Unknown error')}")
 
-                except requests.exceptions.Timeout:
-                    st.error("Request timed out. Please try again.")
-                except requests.exceptions.ConnectionError:
-                    st.error("Cannot connect to the API. Please check if the Flask app is running.")
-                except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
-    else:
-        st.info("Please upload an image to get started.")
+                elif response.status_code == 400:
+                    error_data = response.json()
+                    st.error(f"Bad request: {error_data.get('error', 'Invalid input')}")
+
+                else:
+                    st.error(f"Server error: {response.status_code}")
+
+            except requests.exceptions.Timeout:
+                st.error("Request timed out. Please try again.")
+            except requests.exceptions.ConnectionError:
+                st.error("Cannot connect to the API. Please check if the Flask app is running.")
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
+else:
+    st.info("Please upload an image to get started.")
 
 # Footer with additional information
 st.markdown("---")

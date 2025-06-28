@@ -1,7 +1,5 @@
-# Use Ubuntu 22.04 LTS as base image
 FROM ubuntu:22.04
 
-# Set environment variables to prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -10,10 +8,8 @@ ENV FLASK_ENV=production
 ENV MODEL_PATH=models/cats_vs_dogs_classifier
 ENV CLASSES_FILE=models/classes.txt
 
-# Set working directory
 WORKDIR /app
 
-# Update package list and install system dependencies
 RUN apt-get update && apt-get install -y \
     # Python and pip
     python3.10 \
@@ -45,24 +41,21 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Create symbolic links for python (force overwrite if exists)
+# Create symbolic links for python
 RUN ln -sf /usr/bin/python3.10 /usr/bin/python && \
     ln -sf /usr/bin/pip3 /usr/bin/pip
 
-# Upgrade pip to latest version
 RUN pip install --upgrade pip setuptools wheel
 
-# Copy requirements file first for better Docker layer caching
+# Copy requirements file
 COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create necessary directories with proper permissions
 RUN mkdir -p logs models uploads temp && \
     chmod 755 logs models uploads temp
 
-# Copy application code
 COPY . .
 
 # Create non-root user for security
@@ -70,7 +63,6 @@ RUN useradd --create-home --shell /bin/bash --user-group appuser && \
     chown -R appuser:appuser /app && \
     chmod -R 755 /app
 
-# Switch to non-root user
 USER appuser
 
 # Expose port 5000 (Flask default)

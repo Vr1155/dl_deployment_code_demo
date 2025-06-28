@@ -96,46 +96,9 @@ with col2:
                             emoji = "🐱" if top_pred['class'] == 'Cat' else "🐶"
                             st.success(f"**{emoji} Prediction: {top_pred['class']}**")
 
-                            # Create a more visual confidence display
-                            confidence_pct = float(top_pred['confidence']) * 100
-                            st.metric(
-                                label="Confidence",
-                                value=f"{confidence_pct:.1f}%"
-                            )
-
-                            # Show confidence bar
-                            st.progress(confidence_pct / 100.0)
-
-                            # Show both predictions in a nice format
-                            st.subheader("Prediction Breakdown")
-                            predictions = result["predictions"]
-
-                            # Create columns for cat and dog
-                            cat_col, dog_col = st.columns(2)
-
-                            # Find cat and dog predictions
-                            cat_pred = next((p for p in predictions if p['class'] == 'Cat'), None)
-                            dog_pred = next((p for p in predictions if p['class'] == 'Dog'), None)
-
-                            with cat_col:
-                                st.metric(
-                                    label="🐱 Cat",
-                                    value=cat_pred['probability'] if cat_pred else "0%"
-                                )
-
-                            with dog_col:
-                                st.metric(
-                                    label="🐶 Dog",
-                                    value=dog_pred['probability'] if dog_pred else "0%"
-                                )
-
                             # Model info
                             if "model" in result:
                                 st.info(f"Model: {result['model']}")
-
-                            # Show raw prediction value for debugging
-                            if "raw_prediction" in result:
-                                st.caption(f"Raw prediction value: {result['raw_prediction']:.4f}")
 
                         else:
                             st.error(f"Prediction failed: {result.get('error', 'Unknown error')}")
